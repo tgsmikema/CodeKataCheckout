@@ -2,12 +2,12 @@ namespace CodeKataCheckout;
 
 public class PricingRule
 {
-    private readonly string _Sku;
-    private readonly decimal _Price;
+    public readonly string Sku;
+    public readonly decimal Price;
 
     public PricingRule(string sku, decimal price)
     {
-        _Sku = sku;
-        _Price = price;
+        this.Sku = sku;
+        this.Price = price;
     }
 }
