@@ -43,4 +43,28 @@ public class CheckoutTests
         
         Assert.Equal(115, checkout.GetTotal());
     }
+
+    [Fact]
+    public void Increment_should_be_correct_when_items_with_simple_pricing_scanned()
+    {
+        var itemAPricingRule = new SimplePricingRule("A", 50);
+        var itemBPricingRule = new SimplePricingRule("B", 30);
+        var itemCPricingRule = new SimplePricingRule("C", 20);
+        var itemDPricingRule = new SimplePricingRule("D", 15);
+        var pricingRules = new List<IPricingRule> { itemAPricingRule, itemDPricingRule, itemCPricingRule, itemBPricingRule };
+        
+        var checkout = new Checkout(pricingRules);
+        
+        checkout.Scan("A");
+        Assert.Equal(50, checkout.GetTotal());
+        
+        checkout.Scan("B");
+        Assert.Equal(80, checkout.GetTotal());
+        
+        checkout.Scan("C");
+        Assert.Equal(100, checkout.GetTotal());
+        
+        checkout.Scan("D");
+        Assert.Equal(115, checkout.GetTotal());
+    }
 }
