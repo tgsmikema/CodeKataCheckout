@@ -9,7 +9,7 @@ public class CheckoutTests
     {
         var checkout = new Checkout(new List<IPricingRule>());
         
-        Assert.Equal(0, checkout.GetTotal());
+        Assert.Equal(0, checkout.Total);
         
     }
     
@@ -22,7 +22,7 @@ public class CheckoutTests
         var checkout = new Checkout(pricingRules);
         checkout.Scan("A");
         
-        Assert.Equal(50, checkout.GetTotal());
+        Assert.Equal(50, checkout.Total);
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class CheckoutTests
         checkout.Scan("C");
         checkout.Scan("D");
         
-        Assert.Equal(115, checkout.GetTotal());
+        Assert.Equal(115, checkout.Total);
     }
 
     [Fact]
@@ -56,15 +56,15 @@ public class CheckoutTests
         var checkout = new Checkout(pricingRules);
         
         checkout.Scan("A");
-        Assert.Equal(50, checkout.GetTotal());
+        Assert.Equal(50, checkout.Total);
         
         checkout.Scan("B");
-        Assert.Equal(80, checkout.GetTotal());
+        Assert.Equal(80, checkout.Total);
         
         checkout.Scan("C");
-        Assert.Equal(100, checkout.GetTotal());
+        Assert.Equal(100, checkout.Total);
         
         checkout.Scan("D");
-        Assert.Equal(115, checkout.GetTotal());
+        Assert.Equal(115, checkout.Total);
     }
 }

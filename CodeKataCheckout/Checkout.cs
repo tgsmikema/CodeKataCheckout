@@ -3,30 +3,40 @@ namespace CodeKataCheckout;
 public class Checkout : ICheckout
 {
     private readonly IEnumerable<IPricingRule> _pricingRules;
-    private readonly List<string> _cart;
+    private readonly Dictionary<string, decimal> _cart;
+    public decimal Total { get; private set; }
+    private string _currentItem;
     public Checkout(IEnumerable<IPricingRule> pricingRules)
     {
         _pricingRules = pricingRules;
-        _cart = new List<string>();
+        _cart = new Dictionary<string, decimal>();
+        Total = 0;
+        _currentItem = null;
     }
     
     public void Scan(string sku)
     {
-        _cart.Add(sku);
-    }
-    
-    public decimal GetTotal()
-    {
-        decimal total = 0;
-        
-        foreach (var item in _cart)
+        _currentItem = sku;
+        if (!_cart.ContainsKey(sku))
         {
-            var pricingRule = _pricingRules.ToList().FirstOrDefault(x => x.Sku == item);
-            if (pricingRule != null)
+            _cart.Add(sku, 1);
+        }
+        else
+        {
+            _cart[sku] += 1;
+        }
+        UpdateTotal();
+    }
+
+    private void UpdateTotal()
+    {
+        foreach (var pricingRule in _pricingRules.ToList())
+        {
+            if (pricingRule.Sku == _currentItem)
             {
-                total += pricingRule.CalculatePrice();
+                Total += pricingRule.CalculatePrice();
             }
         }
-        return total;
+        
     }
 }
