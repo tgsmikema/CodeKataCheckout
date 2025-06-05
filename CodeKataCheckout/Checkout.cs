@@ -35,7 +35,7 @@ public class Checkout : ICheckout
     private void Initialise(IEnumerable<IPricingRule> pricingRules)
     {
         _unitPricingRules = new Dictionary<string, IPricingRule>();
-        _discountRules = new List<IDiscountRule>();
+        _discountRules = new List<IDiscountRule>();  
         _cart = new Cart();
         
         foreach (var pricingRule in pricingRules)
@@ -53,15 +53,15 @@ public class Checkout : ICheckout
 
     private decimal FindMaxDiscounts(string sku, int quantity)
     {
-        // get potential discounts for each sku
+        // get bulk discounts for each sku
+        // assumption that buy more to save more
         var discounts =
             _discountRules.Where(x => x.Sku == sku)
                 .OrderByDescending(y => y.BulkQty).ToList();
 
         int remainingQty = quantity;
         decimal totalDiscount = 0;
-
-        // assumption that buy more to save more
+        
         foreach (var discount in discounts)
         {
             decimal currentDiscount = discount.CalculateDiscount(remainingQty);
