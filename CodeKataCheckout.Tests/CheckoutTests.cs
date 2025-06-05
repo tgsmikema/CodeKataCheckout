@@ -1,139 +1,229 @@
 using System.Security.Principal;
-using CodeKataCheckout.Data;
 
 namespace CodeKataCheckout.Tests;
 
 public class CheckoutTests
 {
-    private readonly ICheckout _checkout;
-    public CheckoutTests()
-    {
-        _checkout = new Checkout(PricingRulesData.GetData());
-    }
-    
     [Fact]
     public void GetTotal_NoItemsScanned_ReturnsZero()
     {
-        Assert.Equal(0, _checkout.GetTotal());
+        var checkout = new Checkout(new List<IPricingRule>());
+        
+        Assert.Equal(0, checkout.GetTotal());
+        
     }
     
     [Fact]
     public void GetTotal_SingleItemAScanned_ReturnsUnitPrice()
     {
-        _checkout.Scan("A");
-        Assert.Equal(50, _checkout.GetTotal());
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricingRule("A", 50)
+        };
+
+        var checkout = new Checkout(pricingRules);
+        checkout.Scan("A");
+        
+        Assert.Equal(50, checkout.GetTotal());
     }
 
     [Fact]
     public void GetTotal_MultipleItemsWithUnitPricing_ReturnsSumOfUnitPrices()
     {
-        _checkout.Scan("A");
-        _checkout.Scan("B");
-        _checkout.Scan("C");
-        _checkout.Scan("D");
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricingRule("A", 50),
+            new UnitPricingRule("B", 30),
+            new UnitPricingRule("C", 20),
+            new UnitPricingRule("D", 15)
+        };
         
-        Assert.Equal(115, _checkout.GetTotal());
+        var checkout = new Checkout(pricingRules);
+        
+        checkout.Scan("A");
+        checkout.Scan("B");
+        checkout.Scan("C");
+        checkout.Scan("D");
+        
+        Assert.Equal(115, checkout.GetTotal());
     }
 
     [Fact]
     public void GetTotal_ScanningItemsOneByOne_ReturnsIncrementalTotalCorrectly()
     {
-        _checkout.Scan("A");
-        Assert.Equal(50, _checkout.GetTotal());
-        _checkout.Scan("B");
-        Assert.Equal(80, _checkout.GetTotal());
-        _checkout.Scan("C");
-        Assert.Equal(100, _checkout.GetTotal());
-        _checkout.Scan("D");
-        Assert.Equal(115, _checkout.GetTotal());
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricingRule("A", 50),
+            new UnitPricingRule("B", 30),
+            new UnitPricingRule("C", 20),
+            new UnitPricingRule("D", 15)
+        };
+        
+        var checkout = new Checkout(pricingRules);
+        
+        checkout.Scan("A");
+        Assert.Equal(50, checkout.GetTotal());
+        checkout.Scan("B");
+        Assert.Equal(80, checkout.GetTotal());
+        checkout.Scan("C");
+        Assert.Equal(100, checkout.GetTotal());
+        checkout.Scan("D");
+        Assert.Equal(115, checkout.GetTotal());
     }
 
     [Fact]
     public void GetTotal_ItemWithBulkDiscount_AppliesDiscountCorrectly()
     {
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricingRule("A", 50),
+            new BulkDiscountRule("A", 50, 3, 130)
+        };
+        
+        var checkout = new Checkout(pricingRules);
+
         for (int i = 0; i < 3; i++)
         {
-            _checkout.Scan("A");
+            checkout.Scan("A");
         }
         
-        Assert.Equal(130, _checkout.GetTotal());
+        Assert.Equal(130, checkout.GetTotal());
     }
     
     [Fact]
     public void GetTotal_ItemWithBulkDiscountOutOfOrderScanned_AppliesDiscountCorrectly()
     {
-        _checkout.Scan("A");
-        _checkout.Scan("B");
-        _checkout.Scan("A");
-        _checkout.Scan("A");
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricingRule("A", 50),
+            new UnitPricingRule("B", 30),
+            new BulkDiscountRule("A", 50, 3, 130)
+        };
         
-        Assert.Equal(160, _checkout.GetTotal());
+        var checkout = new Checkout(pricingRules);
+        
+        checkout.Scan("A");
+        checkout.Scan("B");
+        checkout.Scan("A");
+        checkout.Scan("A");
+        
+        Assert.Equal(160, checkout.GetTotal());
     }
     
     [Fact]
     public void GetTotal_ItemWithBulkDiscountWithRepeatingDiscounts_AppliesDiscountCorrectly()
     {
-        _checkout.Scan("C");
-        _checkout.Scan("B");
-        _checkout.Scan("C");
-        _checkout.Scan("C");
-        _checkout.Scan("C");
-        _checkout.Scan("C");
-        _checkout.Scan("C");
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricingRule("A", 50),
+            new UnitPricingRule("B", 30),
+            new BulkDiscountRule("A", 50, 3, 130)
+        };
         
-        Assert.Equal(130, _checkout.GetTotal());
+        var checkout = new Checkout(pricingRules);
+        
+        checkout.Scan("A");
+        checkout.Scan("B");
+        checkout.Scan("A");
+        checkout.Scan("A");
+        checkout.Scan("A");
+        checkout.Scan("A");
+        checkout.Scan("A");
+        
+        Assert.Equal(290, checkout.GetTotal());
     }
     
     [Fact]
     public void GetTotal_ItemWithBulkDiscount_ReturnsIncrementalTotalCorrectly()
     {
-        _checkout.Scan("A");
-        Assert.Equal(50, _checkout.GetTotal());
-        _checkout.Scan("B");
-        Assert.Equal(80, _checkout.GetTotal());
-        _checkout.Scan("A");
-        Assert.Equal(130, _checkout.GetTotal());
-        _checkout.Scan("A");
-        Assert.Equal(160, _checkout.GetTotal());
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricingRule("A", 50),
+            new UnitPricingRule("B", 30),
+            new BulkDiscountRule("A", 50, 3, 130)
+        };
+        
+        var checkout = new Checkout(pricingRules);
+        
+        checkout.Scan("A");
+        Assert.Equal(50, checkout.GetTotal());
+        checkout.Scan("B");
+        Assert.Equal(80, checkout.GetTotal());
+        checkout.Scan("A");
+        Assert.Equal(130, checkout.GetTotal());
+        checkout.Scan("A");
+        Assert.Equal(160, checkout.GetTotal());
+        
     }
     
     [Fact]
     public void GetTotal_ItemWithBulkDiscountWithRepeatingDiscounts_ReturnsIncrementalTotalCorrectly()
     {
-        _checkout.Scan("C");
-        Assert.Equal(20, _checkout.GetTotal());
-        _checkout.Scan("B");
-        Assert.Equal(50, _checkout.GetTotal());
-        _checkout.Scan("C");
-        Assert.Equal(70, _checkout.GetTotal());
-        _checkout.Scan("C");
-        Assert.Equal(80, _checkout.GetTotal());
-        _checkout.Scan("C");
-        Assert.Equal(100, _checkout.GetTotal());
-        _checkout.Scan("C");
-        Assert.Equal(120, _checkout.GetTotal());
-        _checkout.Scan("C");
-        Assert.Equal(130, _checkout.GetTotal());
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricingRule("A", 50),
+            new UnitPricingRule("B", 30),
+            new BulkDiscountRule("A", 50, 3, 130)
+        };
+        
+        var checkout = new Checkout(pricingRules);
+        
+        checkout.Scan("A");
+        Assert.Equal(50, checkout.GetTotal());
+        checkout.Scan("B");
+        Assert.Equal(80, checkout.GetTotal());
+        checkout.Scan("A");
+        Assert.Equal(130, checkout.GetTotal());
+        checkout.Scan("A");
+        Assert.Equal(160, checkout.GetTotal());
+        checkout.Scan("A");
+        Assert.Equal(210, checkout.GetTotal());
+        checkout.Scan("A");
+        Assert.Equal(260, checkout.GetTotal());
+        checkout.Scan("A");
+        Assert.Equal(290, checkout.GetTotal());
     }
     
     [Fact]
     public void GetTotal_SameItemWithMultipleBulkDiscount_ReturnsTotalCorrectly()
     {
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricingRule("A", 50),
+            new UnitPricingRule("B", 30),
+            new BulkDiscountRule("A", 50, 3, 130),
+            new BulkDiscountRule("A", 50, 6, 250)
+        };
+        
+        var checkout = new Checkout(pricingRules);
+
         for (int i = 0; i < 9; i++)
         {
-            _checkout.Scan("A");
+            checkout.Scan("A");
         }
-        Assert.Equal(380, _checkout.GetTotal());
+        Assert.Equal(380, checkout.GetTotal());
     }
     
     [Fact]
     public void GetTotal_MultipleSameItemWithMultipleBulkDiscount_ReturnsTotalCorrectly()
     {
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricingRule("A", 50),
+            new UnitPricingRule("B", 30),
+            new BulkDiscountRule("A", 50, 3, 130),
+            new BulkDiscountRule("A", 50, 6, 250),
+            new BulkDiscountRule("B", 30, 3, 80),
+            new BulkDiscountRule("B", 30, 6, 150),
+        };
+        
+        var checkout = new Checkout(pricingRules);
+
         for (int i = 0; i < 12; i++)
         {
-            _checkout.Scan("A");
-            _checkout.Scan("B");
+            checkout.Scan("A");
+            checkout.Scan("B");
         }
-        Assert.Equal(740, _checkout.GetTotal());
+        Assert.Equal(800, checkout.GetTotal());
     }
 }
