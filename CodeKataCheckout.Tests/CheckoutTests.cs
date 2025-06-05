@@ -18,7 +18,7 @@ public class CheckoutTests
     {
         var pricingRules = new List<IPricingRule>
         {
-            new UnitPricing("A", 50)
+            new UnitPricingRule("A", 50)
         };
 
         var checkout = new Checkout(pricingRules);
@@ -32,10 +32,10 @@ public class CheckoutTests
     {
         var pricingRules = new List<IPricingRule>
         {
-            new UnitPricing("A", 50),
-            new UnitPricing("B", 30),
-            new UnitPricing("C", 20),
-            new UnitPricing("D", 15)
+            new UnitPricingRule("A", 50),
+            new UnitPricingRule("B", 30),
+            new UnitPricingRule("C", 20),
+            new UnitPricingRule("D", 15)
         };
         
         var checkout = new Checkout(pricingRules);
@@ -53,24 +53,60 @@ public class CheckoutTests
     {
         var pricingRules = new List<IPricingRule>
         {
-            new UnitPricing("A", 50),
-            new UnitPricing("B", 30),
-            new UnitPricing("C", 20),
-            new UnitPricing("D", 15)
+            new UnitPricingRule("A", 50),
+            new UnitPricingRule("B", 30),
+            new UnitPricingRule("C", 20),
+            new UnitPricingRule("D", 15)
         };
         
         var checkout = new Checkout(pricingRules);
         
         checkout.Scan("A");
         Assert.Equal(50, checkout.GetTotal());
-        
         checkout.Scan("B");
         Assert.Equal(80, checkout.GetTotal());
-        
         checkout.Scan("C");
         Assert.Equal(100, checkout.GetTotal());
-        
         checkout.Scan("D");
         Assert.Equal(115, checkout.GetTotal());
+    }
+
+    [Fact]
+    public void Total_should_be_correct_when_item_have_discounts_pricing_scanned()
+    {
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricingRule("A", 50),
+            new BulkDiscount("A", 50, 3, 130)
+        };
+        
+        var checkout = new Checkout(pricingRules);
+
+        for (int i = 0; i < 3; i++)
+        {
+            checkout.Scan("A");
+        }
+        
+        Assert.Equal(130, checkout.GetTotal());
+    }
+    
+    [Fact]
+    public void Total_should_be_correct_when_item_have_discounts_pricing_scanned_out_of_order()
+    {
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricingRule("A", 50),
+            new UnitPricingRule("B", 30),
+            new BulkDiscount("A", 50, 3, 130)
+        };
+        
+        var checkout = new Checkout(pricingRules);
+        
+        checkout.Scan("A");
+        checkout.Scan("B");
+        checkout.Scan("A");
+        checkout.Scan("A");
+        
+        Assert.Equal(160, checkout.GetTotal());
     }
 }

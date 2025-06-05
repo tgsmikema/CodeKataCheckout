@@ -2,7 +2,8 @@ namespace CodeKataCheckout;
 
 public class Checkout : ICheckout
 {
-    private Dictionary<string, IPricingRule> _unitPricing;
+    private Dictionary<string, IPricingRule> _unitPricingRule;
+    private List<IDiscountRule> _discountRules;
     private Dictionary<string, int> _cart;
     public Checkout(IEnumerable<IPricingRule> pricingRules)
     {
@@ -27,8 +28,14 @@ public class Checkout : ICheckout
             string sku = item.Key;
             int quantity = item.Value;
             
-            var unitPricing = _unitPricing[sku];
-            total += unitPricing.GetUnitPrice() * quantity;
+            var unitPricing = _unitPricingRule[sku];
+            decimal subtotal = unitPricing.GetUnitPrice() * quantity;
+
+            decimal discount = _discountRules
+                .Where(dr => dr.Sku == sku)
+                .Sum(s => s.CalculateDiscount(quantity));
+            
+            total += subtotal - discount;
         }
         
         return total;
@@ -36,12 +43,20 @@ public class Checkout : ICheckout
 
     private void Initialise(IEnumerable<IPricingRule> pricingRules)
     {
-        _unitPricing = new Dictionary<string, IPricingRule>();
+        _unitPricingRule = new Dictionary<string, IPricingRule>();
+        _discountRules = new List<IDiscountRule>();
         _cart = new Dictionary<string, int>();
 
         foreach (var pricingRule in pricingRules)
         {
-            _unitPricing.TryAdd(pricingRule.Sku, pricingRule);
+           if (pricingRule is BulkDiscount bulkDiscount)
+           {
+               _discountRules.Add(bulkDiscount);
+           }
+           else
+           {
+               _unitPricingRule.TryAdd(pricingRule.Sku, pricingRule);
+           }
         }
     }
 }
