@@ -2,9 +2,9 @@ namespace CodeKataCheckout;
 
 public class Checkout : ICheckout
 {
-    private Dictionary<string, IPricingRule> _unitPricingRule;
+    private Dictionary<string, IPricingRule> _unitPricingRules;
     private List<IDiscountRule> _discountRules;
-    private Dictionary<string, int> _cart;
+    private Cart _cart;
     public Checkout(IEnumerable<IPricingRule> pricingRules)
     {
         Initialise(pricingRules);
@@ -12,28 +12,23 @@ public class Checkout : ICheckout
     
     public void Scan(string sku)
     {
-        if (!_cart.ContainsKey(sku))
-        {
-            _cart[sku] = 0;
-        }
-        _cart[sku]++;
+        _cart.AddToCart(sku);
     }
 
     public decimal GetTotal()
     {
         decimal total = 0;
 
-        foreach (var item in _cart)
+        foreach (var item in _cart.GetAllItems())
         {
-            string sku = item.Key;
-            int quantity = item.Value;
-            
-            var unitPricing = _unitPricingRule[sku];
-            decimal subtotal = unitPricing.GetUnitPrice() * quantity;
+            // get full price for each sku
+            var unitPricing = _unitPricingRules[item.sku];
+            decimal subtotal = unitPricing.GetUnitPrice() * item.quantity;
 
+            // get potential discounts for each sku
             decimal discount = _discountRules
-                .Where(dr => dr.Sku == sku)
-                .Sum(s => s.CalculateDiscount(quantity));
+                .Where(dr => dr.Sku == item.sku)
+                .Sum(s => s.CalculateDiscount(item.quantity));
             
             total += subtotal - discount;
         }
@@ -43,19 +38,19 @@ public class Checkout : ICheckout
 
     private void Initialise(IEnumerable<IPricingRule> pricingRules)
     {
-        _unitPricingRule = new Dictionary<string, IPricingRule>();
+        _unitPricingRules = new Dictionary<string, IPricingRule>();
         _discountRules = new List<IDiscountRule>();
-        _cart = new Dictionary<string, int>();
-
+        _cart = new Cart();
+        
         foreach (var pricingRule in pricingRules)
         {
-           if (pricingRule is BulkDiscount bulkDiscount)
+           if (pricingRule is BulkDiscountRule bulkDiscount)
            {
                _discountRules.Add(bulkDiscount);
            }
            else
            {
-               _unitPricingRule.TryAdd(pricingRule.Sku, pricingRule);
+               _unitPricingRules.TryAdd(pricingRule.Sku, pricingRule);
            }
         }
     }

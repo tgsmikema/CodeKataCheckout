@@ -1,13 +1,13 @@
 namespace CodeKataCheckout;
 
-public class BulkDiscount : IPricingRule, IDiscountRule
+public class BulkDiscountRule : IPricingRule, IDiscountRule
 {
     public string Sku { get; }
     private readonly decimal _unitPrice;
     private readonly int _bulkQty;
     private readonly decimal _bulkPrice;
 
-    public BulkDiscount(string sku, decimal unitPrice, int bulkQty, decimal bulkPrice)
+    public BulkDiscountRule(string sku, decimal unitPrice, int bulkQty, decimal bulkPrice)
     {
         Sku = sku;
         _unitPrice = unitPrice;
@@ -21,11 +21,6 @@ public class BulkDiscount : IPricingRule, IDiscountRule
         decimal discountPerSet = decimal.Abs(_bulkPrice - _bulkQty * _unitPrice);
         decimal totalDiscount = (sets * discountPerSet);
         return totalDiscount;
-    }
-
-    public int GetBulkQty()
-    {
-        return _bulkQty;
     }
 
     public decimal GetUnitPrice()

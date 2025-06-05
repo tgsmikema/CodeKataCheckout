@@ -77,7 +77,7 @@ public class CheckoutTests
         var pricingRules = new List<IPricingRule>
         {
             new UnitPricingRule("A", 50),
-            new BulkDiscount("A", 50, 3, 130)
+            new BulkDiscountRule("A", 50, 3, 130)
         };
         
         var checkout = new Checkout(pricingRules);
@@ -97,7 +97,7 @@ public class CheckoutTests
         {
             new UnitPricingRule("A", 50),
             new UnitPricingRule("B", 30),
-            new BulkDiscount("A", 50, 3, 130)
+            new BulkDiscountRule("A", 50, 3, 130)
         };
         
         var checkout = new Checkout(pricingRules);
