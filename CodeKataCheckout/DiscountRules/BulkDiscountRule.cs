@@ -3,22 +3,22 @@ namespace CodeKataCheckout;
 public class BulkDiscountRule : IPricingRule, IDiscountRule
 {
     public string Sku { get; }
+    public int BulkQty { get;  }
+    public decimal BulkPrice { get; }
     private readonly decimal _unitPrice;
-    private readonly int _bulkQty;
-    private readonly decimal _bulkPrice;
 
     public BulkDiscountRule(string sku, decimal unitPrice, int bulkQty, decimal bulkPrice)
     {
         Sku = sku;
+        BulkQty = bulkQty;
+        BulkPrice = bulkPrice;
         _unitPrice = unitPrice;
-        _bulkQty = bulkQty;
-        _bulkPrice = bulkPrice;
     }
     
     public decimal CalculateDiscount(int quantity) 
     {
-        int sets = quantity / _bulkQty;
-        decimal discountPerSet = decimal.Abs(_bulkPrice - _bulkQty * _unitPrice);
+        int sets = quantity / BulkQty;
+        decimal discountPerSet = decimal.Abs(BulkPrice - BulkQty * _unitPrice);
         decimal totalDiscount = (sets * discountPerSet);
         return totalDiscount;
     }
@@ -27,4 +27,5 @@ public class BulkDiscountRule : IPricingRule, IDiscountRule
     {
         return _unitPrice;
     }
+    
 }

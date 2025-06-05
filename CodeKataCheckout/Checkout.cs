@@ -24,13 +24,9 @@ public class Checkout : ICheckout
             // get full price for each sku
             var unitPricing = _unitPricingRules[item.sku];
             decimal subtotal = unitPricing.GetUnitPrice() * item.quantity;
-
-            // get potential discounts for each sku
-            decimal discount = _discountRules
-                .Where(dr => dr.Sku == item.sku)
-                .Sum(s => s.CalculateDiscount(item.quantity));
             
-            total += subtotal - discount;
+            // get max discounts for each sku
+            total += subtotal - FindMaxDiscounts(item.sku, item.quantity);
         }
         
         return total;
@@ -53,5 +49,29 @@ public class Checkout : ICheckout
                _unitPricingRules.TryAdd(pricingRule.Sku, pricingRule);
            }
         }
+    }
+
+    private decimal FindMaxDiscounts(string sku, int quantity)
+    {
+        // get potential discounts for each sku
+        var discounts =
+            _discountRules.Where(x => x.Sku == sku)
+                .OrderByDescending(y => y.BulkQty).ToList();
+
+        int remainingQty = quantity;
+        decimal totalDiscount = 0;
+
+        // assumption that buy more to save more
+        foreach (var discount in discounts)
+        {
+            decimal currentDiscount = discount.CalculateDiscount(remainingQty);
+            if (currentDiscount > 0)
+            {
+                int sets = remainingQty / discount.BulkQty;
+                totalDiscount += currentDiscount;
+                remainingQty -= sets * discount.BulkQty;
+            }
+        } 
+        return totalDiscount;
     }
 }
