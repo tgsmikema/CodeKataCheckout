@@ -197,12 +197,33 @@ public class CheckoutTests
         
         var checkout = new Checkout(pricingRules);
 
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 9; i++)
         {
             checkout.Scan("A");
         }
+        Assert.Equal(380, checkout.GetTotal());
+    }
+    
+    [Fact]
+    public void GetTotal_MultipleSameItemWithMultipleBulkDiscount_ReturnsTotalCorrectly()
+    {
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricingRule("A", 50),
+            new UnitPricingRule("B", 30),
+            new BulkDiscountRule("A", 50, 3, 130),
+            new BulkDiscountRule("A", 50, 6, 250),
+            new BulkDiscountRule("B", 30, 3, 80),
+            new BulkDiscountRule("B", 30, 6, 150),
+        };
         
-        Assert.Equal(250, checkout.GetTotal());
-        
+        var checkout = new Checkout(pricingRules);
+
+        for (int i = 0; i < 12; i++)
+        {
+            checkout.Scan("A");
+            checkout.Scan("B");
+        }
+        Assert.Equal(800, checkout.GetTotal());
     }
 }
