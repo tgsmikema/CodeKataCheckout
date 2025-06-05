@@ -2,41 +2,46 @@ namespace CodeKataCheckout;
 
 public class Checkout : ICheckout
 {
-    private readonly IEnumerable<IPricingRule> _pricingRules;
-    private readonly Dictionary<string, decimal> _cart;
-    public decimal Total { get; private set; }
-    private string _currentItem;
+    private Dictionary<string, IPricingRule> _unitPricing;
+    private Dictionary<string, int> _cart;
     public Checkout(IEnumerable<IPricingRule> pricingRules)
     {
-        _pricingRules = pricingRules;
-        _cart = new Dictionary<string, decimal>();
-        Total = 0;
-        _currentItem = null;
+        Initialise(pricingRules);
     }
     
     public void Scan(string sku)
     {
-        _currentItem = sku;
         if (!_cart.ContainsKey(sku))
         {
-            _cart.Add(sku, 1);
+            _cart[sku] = 0;
         }
-        else
-        {
-            _cart[sku] += 1;
-        }
-        UpdateTotal();
+        _cart[sku]++;
     }
 
-    private void UpdateTotal()
+    public decimal GetTotal()
     {
-        foreach (var pricingRule in _pricingRules.ToList())
+        decimal total = 0;
+
+        foreach (var item in _cart)
         {
-            if (pricingRule.Sku == _currentItem)
-            {
-                Total += pricingRule.CalculatePrice();
-            }
+            string sku = item.Key;
+            int quantity = item.Value;
+            
+            var unitPricing = _unitPricing[sku];
+            total += unitPricing.GetUnitPrice() * quantity;
         }
         
+        return total;
+    }
+
+    private void Initialise(IEnumerable<IPricingRule> pricingRules)
+    {
+        _unitPricing = new Dictionary<string, IPricingRule>();
+        _cart = new Dictionary<string, int>();
+
+        foreach (var pricingRule in pricingRules)
+        {
+            _unitPricing.TryAdd(pricingRule.Sku, pricingRule);
+        }
     }
 }

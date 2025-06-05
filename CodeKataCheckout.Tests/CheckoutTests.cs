@@ -9,30 +9,34 @@ public class CheckoutTests
     {
         var checkout = new Checkout(new List<IPricingRule>());
         
-        Assert.Equal(0, checkout.Total);
+        Assert.Equal(0, checkout.GetTotal());
         
     }
     
     [Fact]
     public void Total_should_be_correct_price_when_single_item_A_scanned()
     {
-        var itemAPricingRule = new SimplePricingRule("A", 50);
-        var pricingRules = new List<IPricingRule> { itemAPricingRule };
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricing("A", 50)
+        };
 
         var checkout = new Checkout(pricingRules);
         checkout.Scan("A");
         
-        Assert.Equal(50, checkout.Total);
+        Assert.Equal(50, checkout.GetTotal());
     }
 
     [Fact]
     public void Total_should_be_correct_price_when_items_with_simple_pricing_scanned()
     {
-        var itemAPricingRule = new SimplePricingRule("A", 50);
-        var itemBPricingRule = new SimplePricingRule("B", 30);
-        var itemCPricingRule = new SimplePricingRule("C", 20);
-        var itemDPricingRule = new SimplePricingRule("D", 15);
-        var pricingRules = new List<IPricingRule> { itemAPricingRule, itemDPricingRule, itemCPricingRule, itemBPricingRule };
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricing("A", 50),
+            new UnitPricing("B", 30),
+            new UnitPricing("C", 20),
+            new UnitPricing("D", 15)
+        };
         
         var checkout = new Checkout(pricingRules);
         
@@ -41,30 +45,32 @@ public class CheckoutTests
         checkout.Scan("C");
         checkout.Scan("D");
         
-        Assert.Equal(115, checkout.Total);
+        Assert.Equal(115, checkout.GetTotal());
     }
 
     [Fact]
     public void Increment_should_be_correct_when_items_with_simple_pricing_scanned()
     {
-        var itemAPricingRule = new SimplePricingRule("A", 50);
-        var itemBPricingRule = new SimplePricingRule("B", 30);
-        var itemCPricingRule = new SimplePricingRule("C", 20);
-        var itemDPricingRule = new SimplePricingRule("D", 15);
-        var pricingRules = new List<IPricingRule> { itemAPricingRule, itemDPricingRule, itemCPricingRule, itemBPricingRule };
+        var pricingRules = new List<IPricingRule>
+        {
+            new UnitPricing("A", 50),
+            new UnitPricing("B", 30),
+            new UnitPricing("C", 20),
+            new UnitPricing("D", 15)
+        };
         
         var checkout = new Checkout(pricingRules);
         
         checkout.Scan("A");
-        Assert.Equal(50, checkout.Total);
+        Assert.Equal(50, checkout.GetTotal());
         
         checkout.Scan("B");
-        Assert.Equal(80, checkout.Total);
+        Assert.Equal(80, checkout.GetTotal());
         
         checkout.Scan("C");
-        Assert.Equal(100, checkout.Total);
+        Assert.Equal(100, checkout.GetTotal());
         
         checkout.Scan("D");
-        Assert.Equal(115, checkout.Total);
+        Assert.Equal(115, checkout.GetTotal());
     }
 }
