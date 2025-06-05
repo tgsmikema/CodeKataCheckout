@@ -5,7 +5,7 @@ namespace CodeKataCheckout.Tests;
 public class CheckoutTests
 {
     [Fact]
-    public void Total_should_be_zero_when_no_items_scanned()
+    public void GetTotal_NoItemsScanned_ReturnsZero()
     {
         var checkout = new Checkout(new List<IPricingRule>());
         
@@ -14,7 +14,7 @@ public class CheckoutTests
     }
     
     [Fact]
-    public void Total_should_be_correct_price_when_single_item_A_scanned()
+    public void GetTotal_SingleItemAScanned_ReturnsUnitPrice()
     {
         var pricingRules = new List<IPricingRule>
         {
@@ -28,7 +28,7 @@ public class CheckoutTests
     }
 
     [Fact]
-    public void Total_should_be_correct_price_when_items_with_simple_pricing_scanned()
+    public void GetTotal_MultipleItemsWithUnitPricing_ReturnsSumOfUnitPrices()
     {
         var pricingRules = new List<IPricingRule>
         {
@@ -49,7 +49,7 @@ public class CheckoutTests
     }
 
     [Fact]
-    public void Increment_should_be_correct_when_items_with_simple_pricing_scanned()
+    public void GetTotal_ScanningItemsOneByOne_ReturnsIncrementalTotalCorrectly()
     {
         var pricingRules = new List<IPricingRule>
         {
@@ -72,7 +72,7 @@ public class CheckoutTests
     }
 
     [Fact]
-    public void Total_should_be_correct_when_item_have_discounts_pricing_scanned()
+    public void GetTotal_ItemWithBulkDiscount_AppliesDiscountCorrectly()
     {
         var pricingRules = new List<IPricingRule>
         {
@@ -91,7 +91,7 @@ public class CheckoutTests
     }
     
     [Fact]
-    public void Total_should_be_correct_when_item_have_discounts_pricing_scanned_out_of_order()
+    public void GetTotal_ItemWithBulkDiscountOutOfOrderScanned_AppliesDiscountCorrectly()
     {
         var pricingRules = new List<IPricingRule>
         {
