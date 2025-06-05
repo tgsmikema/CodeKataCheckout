@@ -1,6 +1,6 @@
 namespace CodeKataCheckout;
 
-public class Cart
+public class Cart : ICart
 {
     private readonly Dictionary<string, int> _items;
 
@@ -16,12 +16,6 @@ public class Cart
             _items[sku] = 0;
         }
         _items[sku]++;
-    }
-
-    public int GetQuantity(string sku)
-    {
-        var exist = _items.TryGetValue(sku, out int quantity);
-        return exist ? quantity : 0;
     }
 
     public IEnumerable<(string sku, int quantity)> GetAllItems()

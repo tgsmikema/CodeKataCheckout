@@ -4,7 +4,7 @@ public class Checkout : ICheckout
 {
     private Dictionary<string, IPricingRule> _unitPricingRules;
     private List<IDiscountRule> _discountRules;
-    private Cart _cart;
+    private ICart _cart;
     public Checkout(IEnumerable<IPricingRule> pricingRules)
     {
         Initialise(pricingRules);
