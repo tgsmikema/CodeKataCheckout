@@ -6,9 +6,26 @@ public class CheckoutTests
     [Fact]
     public void Total_should_be_zero_when_no_items_scanned()
     {
-        var checkout = new Checkout(new List<PricingRule>());
+        var checkout = new Checkout(new List<IPricingRule>());
         
         Assert.Equal(0, checkout.Total());
         
+    }
+
+    [Fact]
+
+    public void Total_should_be_simple_total_price_when_items_scanned_with_only_simple_pricing_rule()
+    {
+        var pricingRules = new List<IPricingRule>
+        {
+            new SimplePricingRule("A", 50),
+            new SimplePricingRule("B", 30)
+        };
+        var checkout = new Checkout(pricingRules);
+
+        checkout.Scan("A");
+        checkout.Scan("B");
+        
+        Assert.Equal(80, checkout.Total());
     }
 }
