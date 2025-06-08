@@ -92,4 +92,19 @@ public class CheckoutTests
         // but if Buy2AGet1BFreePricingRule is used, 2 x A + 1 x B = 100 + 1 x A = 50 = 150 (cheaper)
         Assert.Equal(150, checkout.Total());
     }
+
+    [Fact]
+    public void Should_throw_exception_when_sku_scanned_not_in_simple_pricing_rule()
+    {
+        var pricingRules = new List<IPricingRule>
+        {
+            new SimplePricingRule("A", 50)
+        };
+        var checkout = new Checkout(pricingRules);
+        
+        var ex = Assert.Throws<ArgumentException>(() => checkout.Scan("B"));
+        
+        Assert.Equal("Sku B not found", ex.Message);
+        
+    }
 }

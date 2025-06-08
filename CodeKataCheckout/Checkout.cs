@@ -24,6 +24,10 @@ public class Checkout
     {
         if (!_cart.TryGetValue(sku, out var quantity))
         {
+            if (!_simpleRuleSkus.Contains(sku))
+            {
+                throw new ArgumentException($"Sku {sku} not found");
+            }
             _cart[sku] = 1;
         }
         else
