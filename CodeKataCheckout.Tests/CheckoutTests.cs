@@ -28,4 +28,23 @@ public class CheckoutTests
         
         Assert.Equal(80, checkout.Total());
     }
+
+    [Fact]
+    public void Total_should_be_correct_when_items_scanned_with_bulk_pricing_rule()
+    {
+        var pricingRules = new List<IPricingRule>
+        {
+            new SimplePricingRule("A", 50),
+            new SimplePricingRule("B", 30),
+            new BulkPricingRule("A", 50,3, 130)
+        };
+        var checkout = new Checkout(pricingRules);
+
+        checkout.Scan("A");
+        checkout.Scan("B");
+        checkout.Scan("A");
+        checkout.Scan("A");
+        
+        Assert.Equal(160, checkout.Total());
+    }
 }

@@ -18,4 +18,14 @@ public class SimplePricingRule : IPricingRule
         }
         return _price * quantity;
     }
+
+    public PricingRule GetPricingRule()
+    {
+        return PricingRule.SimplePricingRule;
+    }
+
+    public HashSet<string> GetSkus()
+    {
+        return [_sku];
+    }
 }
