@@ -8,4 +8,7 @@ The solution is working in this way:
 * When new type of pricing rule is created, we only need to create the new PricingRule class that extend the IPricingRule interface, add internal logic, and add name to the PricingRule Enum. No other modification is needed in any other classes.
 * Exception is thrown if sku scanned does not have a pricing rule.
 
+Current Limitation:
+* If we need a combination of different special pricing rules (eg. apply both BulkDiscount, and Buy2AGetBFree to get the maximum possible discount), this design may not handle it well, then we might need a recursive way to solve the problem.
+
 I believe this is a great improvement to the first attempt, where made code more modular and reduce dependency, and easily extendable.
