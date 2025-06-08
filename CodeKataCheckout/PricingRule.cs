@@ -3,5 +3,6 @@ namespace CodeKataCheckout;
 public enum PricingRule
 {
     SimplePricingRule,
-    BulkPricingRule
+    BulkPricingRule,
+    MultiSkusPricingRule
 }

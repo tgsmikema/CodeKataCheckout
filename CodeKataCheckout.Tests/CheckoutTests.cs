@@ -69,4 +69,26 @@ public class CheckoutTests
         
         Assert.Equal(210, checkout.Total());
     }
+
+    [Fact]
+    public void Total_should_be_correct_when_multiple_items_scanned_with_Buy2AGet1BFree_pricing_rule()
+    {
+        var pricingRules = new List<IPricingRule>
+        {
+            new SimplePricingRule("A", 50),
+            new SimplePricingRule("B", 30),
+            new BulkPricingRule("A", 50,3, 130),
+            new Buy2AGet1BFreePricingRule("A", 2, 50, "B", 30, 100)
+        };
+        var checkout = new Checkout(pricingRules);
+        
+        checkout.Scan("A");
+        checkout.Scan("B");
+        checkout.Scan("A");
+        checkout.Scan("A");
+        
+        //because if 3 x A is 130 from BulkPricing, + 1 x B is 30, total would be 160
+        // but if Buy2AGet1BFreePricingRule is used, 2 x A + 1 x B = 100 + 1 x A = 50 = 150 (cheaper)
+        Assert.Equal(150, checkout.Total());
+    }
 }
