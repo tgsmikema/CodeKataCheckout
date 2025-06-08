@@ -77,6 +77,7 @@ public class CheckoutTests
         {
             new SimplePricingRule("A", 50),
             new SimplePricingRule("B", 30),
+            new SimplePricingRule("C", 20),
             new BulkPricingRule("A", 50,3, 130),
             new Buy2AGet1BFreePricingRule("A", 2, 50, "B", 30, 100)
         };

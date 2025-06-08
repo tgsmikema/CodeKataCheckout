@@ -14,7 +14,7 @@ public class SimplePricingRule : IPricingRule
     {
         if (!cart.TryGetValue(_sku, out var quantity))
         {
-            throw new ArgumentException($"Sku {_sku} not found");
+            return 0;
         }
         return _price * quantity;
     }
