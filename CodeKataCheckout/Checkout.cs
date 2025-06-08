@@ -2,15 +2,22 @@ namespace CodeKataCheckout;
 
 public class Checkout
 {
-    private readonly List<IPricingRule> _pricingRules;
+    private readonly List<IPricingRule> _allPricingRules;
     private readonly Dictionary<string, int> _cart;
-    private List<IPricingRule> _simplePricingRules;
-    private List<IPricingRule> _specialPricingRules;
-    public Checkout(List<IPricingRule> pricingRules)
+    private List<IPricingRule> _simpleRules;
+    private List<IPricingRule> _specialRules;
+    private HashSet<string> _simpleRuleSkus;
+
+    public Checkout(List<IPricingRule> allPricingRules)
     {
-        _pricingRules = pricingRules;
+        _allPricingRules = allPricingRules;
         _cart = new Dictionary<string, int>();
-        _simplePricingRules = new List<IPricingRule>();
+        
+        _simpleRules = new List<IPricingRule>();
+        _specialRules = new List<IPricingRule>();
+        _simpleRuleSkus = new HashSet<string>();
+
+        CategorisePricingRules();
     }
 
     public void Scan(string sku)
@@ -27,76 +34,83 @@ public class Checkout
 
     public decimal Total()
     {
-        decimal minValue = int.MaxValue;
-        decimal total = 0;
-        
-        var specialPricingRulesTypes = new List<PricingRule>();
-        
-        foreach (var pricingRule in _pricingRules)
+        decimal minimumTotal = CalculateBaseTotal();
+
+        // process each special price rule type individually, eg. bulkPricingRule, MultiSkusPricingRule
+        foreach (var ruleType in GetDistinctSpecialRuleTypes())
         {
-            var specialPricingRuleType = pricingRule.GetPricingRule();
-            if (specialPricingRuleType != PricingRule.SimplePricingRule)
+            decimal currentTotal = 0;
+            var remainingSkus = new HashSet<string>(_simpleRuleSkus);
+            
+            // Apply all special rules of this type
+            foreach (var rule in GetRulesByType(ruleType))
             {
-                specialPricingRulesTypes.Add(specialPricingRuleType);
-            }
-        }
-        
-        HashSet<string> allSkus = new HashSet<string>();
-
-        foreach (var simplePricingRule in _pricingRules)
-        {
-            if (simplePricingRule.GetPricingRule() == PricingRule.SimplePricingRule)
-            {
-                allSkus.UnionWith(simplePricingRule.GetSkus());
-                _simplePricingRules.Add(simplePricingRule);
-            }
-        }
-        
-
-        foreach (var simplePricingRule in _simplePricingRules)
-        {
-            total += simplePricingRule.CalculatePrice(_cart);
-        }
-        
-        minValue = Math.Min(minValue, total);
-
-        // loop thru each special rule types
-        foreach (var specialPricingRuleType in specialPricingRulesTypes)
-        {
-            _specialPricingRules = new List<IPricingRule>();
-
-            foreach (var pricingRule in _pricingRules)
-            {
-                total = 0;
-                
-                if (pricingRule.GetPricingRule() == specialPricingRuleType)
-                {
-                    _specialPricingRules.Add(pricingRule);
-                    allSkus.ExceptWith(pricingRule.GetSkus());
-                }
-
-                foreach (var specialPricingRule in _specialPricingRules)
-                {
-                    total += specialPricingRule.CalculatePrice(_cart);
-                }
-
-                foreach (var skuWithoutDiscount in allSkus)
-                {
-                    foreach (var simplePricingRule in _simplePricingRules)
-                    {
-                        if (simplePricingRule.GetSkus().Contains(skuWithoutDiscount))
-                        {
-                            total += simplePricingRule.CalculatePrice(_cart);
-                        }
-                    }
-                }
-                
-                minValue = Math.Min(minValue, total);
+                currentTotal += rule.CalculatePrice(_cart);
+                remainingSkus.ExceptWith(rule.GetSkus());
             }
             
+            //Add simple pricing for remaining items without any special pricing rules
+            currentTotal += CalculateSimpleTotalForSkus(remainingSkus);
+            
+            minimumTotal = Math.Min(minimumTotal, currentTotal);
         }
 
-        return minValue;
-
+        return minimumTotal;
     }
+
+    private void CategorisePricingRules()
+    {
+        foreach (var pricingRule in _allPricingRules)
+        {
+            if (pricingRule.GetPricingRule() == PricingRule.SimplePricingRule)
+            {
+                _simpleRules.Add(pricingRule);
+                _simpleRuleSkus.UnionWith(pricingRule.GetSkus());
+            }
+            else
+            {
+                _specialRules.Add(pricingRule);
+            }
+        }
+    }
+
+    private decimal CalculateBaseTotal()
+    {
+        decimal total = 0;
+        foreach (var pricingRule in _simpleRules)
+        {
+            total += pricingRule.CalculatePrice(_cart);
+        }
+        return total;
+    }
+
+    private decimal CalculateSimpleTotalForSkus(HashSet<string> skus)
+    {
+        decimal total = 0;
+        foreach (var sku in skus)
+        {
+            foreach (var rule in _simpleRules)
+            {
+                if (rule.GetSkus().Contains(sku))
+                {
+                    total += rule.CalculatePrice(_cart);
+                    break;
+                }
+            }
+        }
+
+        return total;
+    }
+
+    private IEnumerable<PricingRule> GetDistinctSpecialRuleTypes()
+    {
+        return _specialRules.Select(r => r.GetPricingRule()).Distinct();
+    }
+
+    private IEnumerable<IPricingRule> GetRulesByType(PricingRule ruleType)
+    {
+        return _specialRules.Where(r => r.GetPricingRule() == ruleType);
+    }
+
+    
 }
